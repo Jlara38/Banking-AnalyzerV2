@@ -1,9 +1,11 @@
 import sqlite3
+import objecttier
 
 ####################################################################################
+# input_fileName()
 #
-# This function is strictly used to get file name input from the user at the begining of the program and where else a file name 
-# May be needed at.
+# This function is strictly used to get file name input from the user at the begining
+# of the program.
 # 
 def input_fileName():
     file_name = input("Please insert the filename (current file type supported is .csv's from Chase and their formatting): ")
