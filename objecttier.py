@@ -40,7 +40,8 @@ class Statement:
     def Check_or_Slip(self):
         return self._check_or_slip
     
-    # clear_table_entries
+    ####################################################################################
+    # clear_table_entries()
     #
     # This command will simply delete the current database in order to create a new one with the 
     # new csv file data. 
@@ -48,3 +49,44 @@ class Statement:
     def clear_table_entries(dbConn):
         dbConn.execute("""DELETE FROM bankinfo""")
         dbConn.commit()
+    
+    ####################################################################################
+    # clean_string()
+    #
+    # 
+    # 
+    #
+    
+    ####################################################################################
+    # num_transac()
+    #
+    # num_transac checks the database to see if there are any entries from previous csv's or 
+    # if anything has been loaded. If nothing exists we return -1 to let the calling function 
+    # know that the database has entries. Otherwise we return the actual amount of entries. 
+    #
+    def num_transac(dbConn):
+        sql = """SELECT Count(*)
+                 From bankinfo"""
+        total_transactions = datatier.select_one_row(dbConn, sql)
+        
+        if total_transactions[0] == 0:
+            return -1
+        
+        return total_transactions
+    
+    ####################################################################################
+    # load_data_to_db()
+    #
+    # load_data_to_db will be primarily used to load the data from the CSV file into the database.
+    # each line in the csv will be turned into an entry for our database. 
+    # for the entries that require number/decimals they will be converted accordingly. 
+    #
+    def load_data_to_db(dbConn,filename):
+        with open(filename, mode='r') as file:
+            csv_file = csv.DictReader(file)
+            for lines in csv_file:
+                return #Will be changed in the coming future
+        dbConn.commit()
+        
+    
+    

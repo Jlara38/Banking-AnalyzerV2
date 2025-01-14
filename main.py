@@ -18,6 +18,32 @@ def input_fileName():
     
     return file_name
 
+####################################################################################
+# clear_all_entries()
+#
+# This command will be used to clear all entries in the database in order to make sure that
+# if any updates happen from the CSV file then it will properly reflect them once the 
+# user puts the CSV file in and types the name in when the program runs. 
+#
+def clear_all_entries(dbConn):
+    print("Clearing all data entries in the database")
+    objecttier.clear_table_entries(dbConn)
+
+####################################################################################
+# load_database()
+#
+# load_database() will check if the database has any entries before attempting to load the data from the CSV file.
+# Shouls no entries be found it will proceed to make a call to fucntions in the object tier in order to load the data
+# into the database. Otherwise it will just let the user know that the database has data and that they should clear the 
+# database before reading a new CSV. 
+#
+def load_database(dbConn, filename):
+    number_of_transactions = objecttier.num_transac(dbConn)
+    if(number_of_transactions == -1):
+        print("Loading data from CSV into the database")
+        objecttier.load_data_to_db(dbConn, filename)
+    else:
+        print("Data exists in database (Use the clear command before trying to load new data into the database.)")
 
 ####################################################################################
 #
