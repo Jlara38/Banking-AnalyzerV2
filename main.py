@@ -57,3 +57,5 @@ file_name = input_fileName()
 dbConn = sqlite3.connect('bank_information.db')
 
 dbConn.commit()
+
+load_database(dbConn, file_name)

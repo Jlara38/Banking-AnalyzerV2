@@ -2,6 +2,12 @@ import datatier
 import csv
 import re
 
+state_abbreviations = [
+    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 
+    'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 
+    'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 
+    'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+]
 class Statement:
     def __init__(self, D, PD, Desc, Amt, Tp, Bal, CorS):
         self._details = D
@@ -40,53 +46,87 @@ class Statement:
     def Check_or_Slip(self):
         return self._check_or_slip
     
-    ####################################################################################
-    # clear_table_entries()
-    #
-    # This command will simply delete the current database in order to create a new one with the 
-    # new csv file data. 
-    #
-    def clear_table_entries(dbConn):
-        dbConn.execute("""DELETE FROM bankinfo""")
-        dbConn.commit()
+####################################################################################
+# clear_table_entries()
+#
+# This command will simply delete the current database in order to create a new one with the 
+# new csv file data. 
+#
+def clear_table_entries(dbConn):
+    dbConn.execute("""DELETE FROM bankinfo""")
+    dbConn.commit()
+
+####################################################################################
+# clean_desc()
+#
+# clean_desc is meant to clean up the description from the CSV file and abbreviate any 
+# state that may be icluded in the description. It is an attempt to make the displaying of the 
+# description a look nicer whenever we need to display it.
+#
+def clean_desc(description):
+    pattern = r'\b(' + '|'.join(state_abbreviations) + r')\b'
+    match = re.search(pattern,description)
     
-    ####################################################################################
-    # clean_string()
-    #
-    # 
-    # 
-    #
+    if match:
+        return description[:match.end()].strip()
     
-    ####################################################################################
-    # num_transac()
-    #
-    # num_transac checks the database to see if there are any entries from previous csv's or 
-    # if anything has been loaded. If nothing exists we return -1 to let the calling function 
-    # know that the database has entries. Otherwise we return the actual amount of entries. 
-    #
-    def num_transac(dbConn):
-        sql = """SELECT Count(*)
-                 From bankinfo"""
-        total_transactions = datatier.select_one_row(dbConn, sql)
-        
-        if total_transactions[0] == 0:
-            return -1
-        
-        return total_transactions
+    return description.strip()
+
+####################################################################################
+# num_transac()
+#
+# num_transac checks the database to see if there are any entries from previous csv's or 
+# if anything has been loaded. If nothing exists we return -1 to let the calling function 
+# know that the database has entries. Otherwise we return the actual amount of entries. 
+#
+def num_transac(dbConn):
+    sql = """SELECT Count(*)
+                From bankinfo"""
+    total_transactions = datatier.select_one_row(dbConn, sql)
     
-    ####################################################################################
-    # load_data_to_db()
-    #
-    # load_data_to_db will be primarily used to load the data from the CSV file into the database.
-    # each line in the csv will be turned into an entry for our database. 
-    # for the entries that require number/decimals they will be converted accordingly. 
-    #
-    def load_data_to_db(dbConn,filename):
-        with open(filename, mode='r') as file:
-            csv_file = csv.DictReader(file)
-            for lines in csv_file:
-                return #Will be changed in the coming future
-        dbConn.commit()
+    if total_transactions[0] == 0:
+        return -1
+    
+    return total_transactions
+
+####################################################################################
+# check_if_number()
+#
+# This helper function will just check to make sure that the relevant information is (amount and balance) 
+# are not empty ex: " ". That way the information can be added to the database.
+# In the case of the amount there will always be one regarding values simply because the bank statement 
+# Will show how much you spent or is pending. For balance however we have to write 0.0 in the cases that the bank 
+# does not report the actual balance for the account because the transaction had no way to know how much you had in your account
+# at the time of purchase.
+#
+def check_if_number(lines, text):
+    if(lines[text] == ' '):
+        return 0.0
+    else:
+        return float(lines[text])
+    
+
+####################################################################################
+# load_data_to_db()
+#
+# load_data_to_db will be primarily used to load the data from the CSV file into the database.
+# each line in the csv will be turned into an entry for our database. 
+# for the entries that require number/decimals they will be converted accordingly. 
+#
+def load_data_to_db(dbConn,filename):
+    t_amt = "Amount"
+    t_bal = "Balance"
+    with open(filename, mode='r') as file:
+        csv_file = csv.DictReader(file)
+        for lines in csv_file:
+            amount  = check_if_number(lines, t_amt)
+            balance = check_if_number(lines, t_bal)
+            cleaned_desc = clean_desc(lines["Description"])
+            dbConn.execute("""
+                                INSERT INTO bankinfo (details, date, description, amount, type, balance, check_or_slip)
+                                VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                                (lines["Details"], lines["Posting Date"], cleaned_desc, amount, lines["Type"], balance, lines["Check or Slip #"]))
+    dbConn.commit()
         
     
     
