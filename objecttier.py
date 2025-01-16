@@ -127,6 +127,30 @@ def load_data_to_db(dbConn,filename):
                                 VALUES (?, ?, ?, ?, ?, ?, ?)""",
                                 (lines["Details"], lines["Posting Date"], cleaned_desc, amount, lines["Type"], balance, lines["Check or Slip #"]))
     dbConn.commit()
-        
+
+def find_biggest_purchase(dbConn):
+    sql = """SELECT date, description, MAX(amount), type
+             FROM bankinfo
+             WHERE type NOT IN ('ATM', 'ACCT_XFER', 'ACH_CREDIT')"""
+             
+    biggest_purchase = datatier.select_n_rows(dbConn, sql)
     
+    for purchase in biggest_purchase:
+        print(f"Biggest Expenditure --> Date: {purchase[0]} | Description: {purchase[1]} | Amount: ${purchase[2]:,} | Payment Type/Entry Type: {purchase[3]}")
     
+def purchases_by_company(dbConn):
+    userInput = input("Enter company name/or partial part of the name (You can wrap the name with %name%' for better results)")
+    print()
+    sql = """SELECT description, Sum(amount)
+             FROM bankinfo
+             WHERE description LIKE ?
+             GROUP BY description"""
+             
+    companies = datatier.select_n_rows(dbConn, sql, [userInput])
+    
+    if companies == None:
+        print("No company exist by that name in the database")
+        return 0
+    else:
+        for comp in companies:
+            print(f"{comp[0]} | ${comp[1]:,.2f}")

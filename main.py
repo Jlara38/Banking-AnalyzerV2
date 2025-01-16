@@ -52,10 +52,14 @@ def load_database(dbConn, filename):
 
 print("** Welcome to the Banking Analyzer App **")
 
-file_name = input_fileName()
+# file_name = input_fileName()
 
 dbConn = sqlite3.connect('bank_information.db')
 
 dbConn.commit()
 
-load_database(dbConn, file_name)
+# load_database(dbConn, file_name)
+
+objecttier.find_biggest_purchase(dbConn)
+
+objecttier.purchases_by_company(dbConn)
