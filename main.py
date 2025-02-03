@@ -45,21 +45,32 @@ def load_database(dbConn, filename):
     else:
         print("Data exists in database (Use the clear command before trying to load new data into the database.)")
 
+def print_gen_stats(dbConn):
+    number_of_entries = objecttier.num_transac(dbConn)
+    print("The number entires is: " + number_of_entries)
+    objecttier.find_biggest_purchase(dbConn)
+    
+
+    
+
 ####################################################################################
 #
 # Main 
 #
-
 print("** Welcome to the Banking Analyzer App **")
+print("*****************************************")
 
-# file_name = input_fileName()
+file_name = input_fileName()
 
 dbConn = sqlite3.connect('bank_information.db')
 
 dbConn.commit()
 
-# load_database(dbConn, file_name)
+load_database(dbConn, file_name)
 
-objecttier.find_biggest_purchase(dbConn)
+print("Here are some general stats: ")
+
+
+
 
 objecttier.purchases_by_company(dbConn)

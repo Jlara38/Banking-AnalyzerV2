@@ -128,6 +128,13 @@ def load_data_to_db(dbConn,filename):
                                 (lines["Details"], lines["Posting Date"], cleaned_desc, amount, lines["Type"], balance, lines["Check or Slip #"]))
     dbConn.commit()
 
+
+####################################################################################
+# find_biggest_purchase()
+#
+# find_biggest_purchase will just parse through the data and find the entry with the largest
+# amount of money spent. This will exclude any kind of ATM Withdrawals/deposits and any money sent.
+# 
 def find_biggest_purchase(dbConn):
     sql = """SELECT date, description, MAX(amount), type
              FROM bankinfo
@@ -137,7 +144,17 @@ def find_biggest_purchase(dbConn):
     
     for purchase in biggest_purchase:
         print(f"Biggest Expenditure --> Date: {purchase[0]} | Description: {purchase[1]} | Amount: ${purchase[2]:,} | Payment Type/Entry Type: {purchase[3]}")
-    
+
+        
+####################################################################################
+# purchases_by_company()
+#
+# purchases_by_company allows the user to input a company name with some kind of wildcard
+# in order to find names in the datatable that match if not are similar to the one the user entered.
+# upon finding any relevant information it will return a list that will later be iterated through to 
+# display the comapany name and the amount of money spent on said company. If no company
+# matches up with the database then it will simply let the user know that it does not exist.
+#
 def purchases_by_company(dbConn):
     userInput = input("Enter company name/or partial part of the name (You can wrap the name with %name%' for better results)")
     print()
@@ -151,6 +168,19 @@ def purchases_by_company(dbConn):
     if companies == None:
         print("No company exist by that name in the database")
         return 0
+    else:
+        for comp in companies:
+            print(f"{comp[0]} | ${comp[1]:,.2f}")
+            
+def amount_spent_perYear(dbConn):
+    sql = """SELECT Year(STR_TO_DATE(date, '%d/%m/%Y')), Sum(amount)
+             FROM bankinfo
+             GROUP BY Year(STR_TO_DATE(date, '%d/%m/%Y'))"""
+             
+    companies = datatier.select_n_rows(dbConn, sql)
+    
+    if companies == None:
+        print("No data available for the year expenditures")
     else:
         for comp in companies:
             print(f"{comp[0]} | ${comp[1]:,.2f}")
