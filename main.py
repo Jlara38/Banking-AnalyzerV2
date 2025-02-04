@@ -44,13 +44,22 @@ def load_database(dbConn, filename):
         objecttier.load_data_to_db(dbConn, filename)
     else:
         print("Data exists in database (Use the clear command before trying to load new data into the database.)")
-
+        
+####################################################################################
+# print_gen_stats()
+#
+# print_gen_stats will simply print some general stats like the number of entries and 
+# the biggest purchase found in your entry. 
 def print_gen_stats(dbConn):
     number_of_entries = objecttier.num_transac(dbConn)
-    print("The number entires is: " + number_of_entries)
+    print("The number entires is:",number_of_entries)
     objecttier.find_biggest_purchase(dbConn)
     
-
+def instructions():
+    print("Command 1: Will show you the amount spent per year (up to 3 years)")
+    print("Command 2: Allows you to search spending by the company of your choosing (using wildcards: _ , %, etc.)")
+    print("Command 3: Will clear all database entries")
+    print("Command 4: Will allow you to load another file into the database.")
     
 
 ####################################################################################
@@ -70,7 +79,31 @@ load_database(dbConn, file_name)
 
 print("Here are some general stats: ")
 
+print_gen_stats(dbConn)
 
+instructions()
+cmd = input("Please enter a command (1-4, x to exit): ")
+print()
 
+while cmd != "x":
+    if cmd == "1":
+        objecttier.amount_spent_perYear(dbConn)
+    elif cmd == "2":
+        objecttier.purchases_by_company(dbConn)
+    elif cmd == "3":
+        objecttier.clear_table_entries(dbConn)
+    elif cmd == "4":
+        file_name = input_fileName()
+        load_database(dbConn,file_name)
+        print("Here are some general stats: ")
+        print_gen_stats(dbConn)
+    else:
+        print("**Error, unkown command, try again...")
+    
+    print()
+    instructions()
+    cmd = input("Please enter a command (1-4, x to exit): ")
+    print()
 
-objecttier.purchases_by_company(dbConn)
+dbConn.close()
+print("Thank you for using this app, hopefully it helped better visualize your spending. ")

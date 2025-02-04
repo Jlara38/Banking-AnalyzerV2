@@ -87,7 +87,7 @@ def num_transac(dbConn):
     if total_transactions[0] == 0:
         return -1
     
-    return total_transactions
+    return total_transactions[0]
 
 ####################################################################################
 # check_if_number()
@@ -171,11 +171,20 @@ def purchases_by_company(dbConn):
     else:
         for comp in companies:
             print(f"{comp[0]} | ${comp[1]:,.2f}")
-            
+
+####################################################################################
+# amount_spent_perYear()
+#
+# amount_spent_perYear will allow the user to look at the expenses made in the past 3 years. If no records are found
+# for the past 3 years then it will just display the most recent 2 or 1 depending on the entries. 
+# They will be displayed in descending order. 
+#
 def amount_spent_perYear(dbConn):
-    sql = """SELECT Year(STR_TO_DATE(date, '%d/%m/%Y')), Sum(amount)
+    sql = """SELECT strftime('%Y', substr(date, 7, 4) || '-' || substr(date, 4, 2) || '-' || substr(date, 1, 2)) AS Year, Sum(amount)
              FROM bankinfo
-             GROUP BY Year(STR_TO_DATE(date, '%d/%m/%Y'))"""
+             GROUP BY Year
+             ORDER BY Year DESC
+             LIMIT 3"""
              
     companies = datatier.select_n_rows(dbConn, sql)
     
